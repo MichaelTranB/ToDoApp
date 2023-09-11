@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>To-Do List App</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">ToDo App</div>
+        <ul class="navbar-links">
+            <li><a href="{{ url_for('index') }}">Home</a></li>
+            <li><a href="{{ url_for('about') }}">About</a></li>
+        </ul>
+    </nav>
+    <div class="container">
+        <div class="left-side">
+            <div class="container-form">
+                <form action="{{ url_for('add') }}" method="POST">
+                    <input type="text" name="task_title" placeholder="Enter a task...">
+                    <button type="submit">Add</button>
+                </form>
+            </div>
+            <div class="statistics-card">
+                <div class="statistics-header">
+                    <p>Statistics</p>
+                </div>
+                <div class="stat-container">
+                    <div class="stat">
+                        <h3>Total</h3>
+                        <p class="stat-number">{{total_todo}}</p>
+                    </div>
+                    <div class="stat">
+                        <h3>Completed</h3>
+                        <p class="stat-number">{{completed_todo}}</p>
+                    </div>
+                    <div class="stat">
+                        <h3>Uncompleted</h3>
+                        <p class="stat-number">{{uncompleted}}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container-todo">
+            <h1>To-Do List</h1>
+            <ul>
+                {% for todo in todo_list %}
+                <li>
+                    <div class="task-container">
+                        <div class="task">
+                            <input type="checkbox" class="checkbox" {% if todo.complete %}checked{% endif %}>
+                            <label {% if todo.complete %}class="completed"{% endif %}>{{ todo.title }}</label>
+                        </div>
+                        <div class="buttons">
+                            <a class="delete-btn" href="{{ url_for('delete', id=todo.id) }}">Delete</a>
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const taskLabels = document.querySelectorAll("label");
+            const editForm = document.getElementById("edit-form");
+            const editTitle = document.getElementById("edit-title");
+            const modal = document.getElementById("edit-modal");
+            const closeBtn = document.querySelector(".close");
+
+            taskLabels.forEach((label, index) => {
+                label.addEventListener("click", function () {
+                    const id = this.parentNode.parentNode.dataset.id;
+                    const title = label.textContent;
+                    const isChecked = label.previousElementSibling.checked;
+                    editForm.action = `/edit/${id}`;
+                    editTitle.value = title;
+                    editForm.innerHTML = `<input type="hidden" name="new_status" value="${isChecked}">` + editForm.innerHTML;
+                    modal.style.display = "block";
+                });
+            });
+
+            closeBtn.addEventListener("click", function () {
+                modal.style.display = "none";
+            });
+
+            window.onclick = function (event) {
+                if (event.target === modal) {
+                    modal.style.display = "none";
+                }
+            };
+
+            editForm.addEventListener("submit", function (event) {
+                modal.style.display = "none";
+            });
+        });
+    </script>
+
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Edit Task</h2>
+            <form id="edit-form" method="POST">
+                <input type="text" name="new_title" id="edit-title" placeholder="Enter a new task...">
+                <button type="submit">Update</button>
+            </form>
+        </div>
+    </div>
+</body>
